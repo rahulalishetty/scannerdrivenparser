@@ -11,14 +11,14 @@ class Parser {
         this.currLine = 0;
     }
 
-    parseLine(line, startStep= 0, prevResult=null,recordDepth=null) {
+    parseLine(line, startStep= 0, prevResult=null,recordDepth=null,removeEnd=false) {
         if(this.currLine === this.lines.length) return;
         let scanner = new Scanner(line, this.curCursor?this.curCursor:null);
         if(scanner.peek() === -1) {
             this.currLine++;
             return;
         }
-        let parseClosureHandle = parseClosure(scanner, startStep, prevResult, recordDepth);
+        let parseClosureHandle = parseClosure(scanner, startStep, prevResult, recordDepth, removeEnd);
         let {result, step, isRecord} = parseClosureHandle.process();
         if(isRecord) {
             if (scanner.peek() === -1) {
@@ -31,7 +31,7 @@ class Parser {
                 count++;
                 recordResult.push(this.parseLine(this.lines[this.currLine], 1, [], recordDepth ? recordDepth + 1 : 1));
             }
-            this.parseLine(this.lines[this.currLine], 4, [], recordDepth ? recordDepth + 1 : 1)
+            this.parseLine(this.lines[this.currLine], 4, [], recordDepth ? recordDepth + 1 : 1,true)
             result.push(recordResult);
             if(recordDepth === null) this.result.push(result);
         } else {
@@ -72,7 +72,7 @@ class Parser {
     }
 }
 
-const parseClosure = (scanner, startStep = 0, prevResult=null, recordDepth=null) => {
+const parseClosure = (scanner, startStep = 0, prevResult=null, recordDepth=null,removeEnd=false) => {
    let step = startStep;
    let result = prevResult || [];
    let isRecord = false;
@@ -103,7 +103,7 @@ const parseClosure = (scanner, startStep = 0, prevResult=null, recordDepth=null)
                step++;
                break;
            case END:
-               if(recordDepth && scanner.peek() === END) {
+               if(removeEnd && scanner.peek() === END) {
                    scanner.consume();
                }
                if(scanner.peek() === SEMI) {
