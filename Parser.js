@@ -31,6 +31,7 @@ class Parser {
                 count++;
                 recordResult.push(this.parseLine(this.lines[this.currLine], 1, [], recordDepth ? recordDepth + 1 : 1));
             }
+            if(recordResult.length === 0) throw `error: expecting ID but got END`;
             this.parseLine(this.lines[this.currLine], 4, [], recordDepth ? recordDepth + 1 : 1,true)
             result.push(recordResult);
             if(recordDepth === null) this.result.push(result);
@@ -88,11 +89,14 @@ const parseClosure = (scanner, startStep = 0, prevResult=null, recordDepth=null,
                    break;
                } else throw "error: invalid syntax";
            case IDENTIFIER:
-               if(IDENTIFIER_REGEX.test(scanner.peek())) {
+               if(IDENTIFIER_REGEX.test(scanner.peek()) && ![RESERVED_VAR,RESERVED_NUMBER,RESERVED_STRING,RESERVED_RECORD].includes(scanner.peek())) {
                     result.push(scanner.consume());
                     step++;
                     break;
-               } else throw "error: invalid identifier";
+               } else {
+                 if([RESERVED_VAR,RESERVED_NUMBER,RESERVED_STRING,RESERVED_RECORD].includes(scanner.peek())) throw `error: expecting ID but got ${scanner.peek().toUpperCase()}`;
+                 throw "error: invalid identifier";
+               }
            case TYPE:
                const type = scanner.peek();
                if(type === RESERVED_NUMBER || type === RESERVED_STRING) {
