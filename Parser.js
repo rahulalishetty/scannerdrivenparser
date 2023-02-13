@@ -47,6 +47,7 @@ class Parser {
                 }
             } else if (step < DECLARATION_STRUCTURE.length) {
                 this.currLine++;
+                if(this.currLine === this.lines.length) throw "error: invalid syntax";
                 this.curCursor = 0;
                 this.parseLine(this.lines[this.currLine], step, result);
             }
